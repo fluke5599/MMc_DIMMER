@@ -1,0 +1,117 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+const int ledPin = 9;
+String brightness = "";
+bool first = true; 
+
+
+const int analogIn = A0;
+int mVperAmp = 185; // use 100 for 20A Module and 66 for 30A Module
+int RawValue= 0;
+int ACSoffset = 2500; 
+double Voltage = 0;
+double Amps = 0;
+LiquidCrystal_I2C lcd(0x3E, 16, 2); 
+
+void setup()
+{
+  Serial.begin(19200);
+  pinMode(ledPin, OUTPUT);
+  lcd.begin();
+  lcd.setCursor(1, 0);
+  lcd.print("Welcome :)"); 
+  lcd.setCursor(7, 1); 
+  lcd.print("MMc Dimmer"); 
+  delay(2000);
+  lcd.clear();
+  
+}
+
+void loop() {
+ /* if (first){
+    Serial.println("brightness 0-255 =");
+    first = false;
+  } */
+  RawValue = analogRead(analogIn);
+    Voltage = (RawValue / 1024.0) * 5000; // Gets you mV
+    Amps = ((Voltage - ACSoffset) / mVperAmp);
+    Serial.print("Raw Value = " ); // shows pre-scaled value 
+    Serial.print(RawValue); 
+    Serial.print("\t mV = "); // shows the voltage measured 
+    Serial.print(Voltage,3); // the '3' after voltage allows you to display 3 digits after decimal point
+    Serial.print("\t Amps = "); // shows the voltage measured 
+    Serial.println(Amps,3); // the '3' after voltage allows you to display 3 digits after decimal point
+    delay(350);
+   
+      
+  if (Serial.available()){
+    
+    char received = Serial.read();
+    brightness += received;
+    if (received == '\n')
+ 
+  {
+    analogWrite(ledPin, brightness.toInt()); //บรรทัดนี้แสดงผล
+    Serial.print("brightness = ");
+    Serial.println(brightness.toInt(), DEC); //บรรทัดนี้มันแปลง String เป็น Int
+  
+    if(brightness.toInt()<=0 && brightness.toInt()<=1){
+    Serial.print("ไม่มีความสว่าง");
+ 
+        lcd.setCursor(1, 0);
+        lcd.print("Light Level=OFF");
+        delay(1000);
+        
+    }
+ if(brightness.toInt()>=1 && brightness.toInt()<=50){
+    Serial.print("ความสว่าง ระดับ 1");
+    Serial.println(" มีความสว่างน้อยมาก");
+ 
+        lcd.setCursor(1, 0);
+        lcd.print("Light Level= 1");
+        delay(1000);
+ }
+    if(brightness.toInt()>=51 && brightness.toInt()<=100){
+     Serial.println("ความสว่าง ระดับ 2");
+     
+        lcd.setCursor(1, 0);
+        lcd.print("Light Level= 2");
+        delay(1000);
+      
+      }
+      if(brightness.toInt()>=101 && brightness.toInt()<=150){
+     Serial.println("ความสว่าง ระดับ 3");
+     
+        lcd.setCursor(1, 0);
+        lcd.print("Light Level= 3");
+        delay(1000);
+       
+      }
+       if(brightness.toInt()>=151 && brightness.toInt()<=200){
+     Serial.println("ความสว่าง ระดับ 4");
+     
+        lcd.setCursor(1, 0);
+        lcd.print("Light Level= 4");
+        delay(1000);
+      
+      }
+      if(brightness.toInt()>=201 && brightness.toInt()<=255){
+     Serial.print("ความสว่าง ระดับ 5");
+     Serial.println(" มีความสว่างสูงสุด");
+     
+        lcd.setCursor(1, 0);
+        lcd.print("Light Level=MAX");
+        delay(1000);
+     
+      
+      }
+      
+     brightness = "" ;
+        
+    }
+    
+  }
+ 
+}   
+
